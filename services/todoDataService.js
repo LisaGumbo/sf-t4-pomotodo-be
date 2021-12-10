@@ -6,6 +6,7 @@ const TableName = process.env.TABLE_NAME;
 const dynamoClient = require('../db');
 // uuid, useful for generating unique ids
 const uuid = require("uuid");
+const { DataSync } = require('aws-sdk');
 
 module.exports = class TodoDataService {
   static async addTodo(todo) {
@@ -13,13 +14,17 @@ module.exports = class TodoDataService {
     todo.id = id;
 
     const params = {
-      TableName, // "tododata"
+      TableName,
     };
 
     try {
       // Check the "tododata" table for existing a tododata item
-      // let existingTodoData = ...
-      
+     let existingTodoData = await dynamoClient.scan(params).promise().then((data) => {
+      let existingTodoData = data
+      console.log(existingTodoData)
+      return existingTodoData
+  });
+
       // no tododata exists yet
       if (existingTodoData.Items.length === 0) {
         const newTodoData = {
@@ -32,12 +37,24 @@ module.exports = class TodoDataService {
         
         // Add a new tododata placeholder item to the "tododata" table
         const params = {
-          TableName,
+          TableName: 'tododata',
           Item: newTodoData,
         }
-        // ...
+      
+        console.log(params.Item)
 
+        await dynamoClient.put(params).promise()
         // Return the newly created tododata item
+        return await dynamoClient.get({
+          TableName, 
+          Key:{
+            id: "0"
+          }
+        }).promise().then((data) => {
+          console.log(data.Item)
+          return data.Item;
+        })
+
       } else { // a tododata item already exist
         existingTodoData = existingTodoData.Items[0];
         existingTodoData.order.push(id);
@@ -46,7 +63,7 @@ module.exports = class TodoDataService {
         // Replace the existing tododata item with the new one, created in the above three lines
         const params = {
           TableName,
-          Item: existingTodoData,
+          Item: {...existingTodoData},
         }
         // ...
 
