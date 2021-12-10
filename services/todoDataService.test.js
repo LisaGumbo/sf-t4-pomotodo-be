@@ -43,7 +43,7 @@ describe("TodoData Service", () => {
     expect(actual.order.length).toEqual(2);
   });
 
-  xit("updates the todo order", async () => {
+  it("updates the todo order", async () => {
     const todo1 = {
       name: "Add entry",
       desc: "Personal log",
@@ -59,6 +59,8 @@ describe("TodoData Service", () => {
 
     const returnedTodo1 = await todoDataService.addTodo(todo1);
     const returnedTodo2 = await todoDataService.addTodo(todo2);
+
+    console.log(returnedTodo2)
 
     await todoDataService.updateOrder({
       "order": [returnedTodo2.order[1], returnedTodo2.order[0]]
